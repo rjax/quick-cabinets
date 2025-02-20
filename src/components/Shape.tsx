@@ -1,8 +1,9 @@
 import React from 'react';
-import { Rect, Circle, Line, Transformer } from 'react-konva';
+import { Rect, Circle, Transformer } from 'react-konva';
 import { ShapeProps } from '../types';
+import { Line } from './Line';
 
-export const Shape: React.FC<ShapeProps> = ({
+export const Shape: React.FC<ShapeProps & { onPointDragEnd?: any }> = ({
   id,
   type,
   x,
@@ -13,6 +14,8 @@ export const Shape: React.FC<ShapeProps> = ({
   isSelected,
   onSelect,
   onDragEnd,
+  onPointDragEnd,
+  ...props
 }) => {
   const shapeRef = React.useRef(null);
   const transformerRef = React.useRef(null);
@@ -36,6 +39,23 @@ export const Shape: React.FC<ShapeProps> = ({
     ref: shapeRef,
   };
 
+  if (type === 'line' && 'points' in props) {
+    return (
+      <Line
+        {...props}
+        id={id}
+        type={type}
+        x={x}
+        y={y}
+        rotation={rotation}
+        isSelected={isSelected}
+        onSelect={onSelect}
+        onDragEnd={onDragEnd}
+        onPointDragEnd={onPointDragEnd}
+      />
+    );
+  }
+
   const renderShape = () => {
     switch (type) {
       case 'rectangle':
@@ -47,15 +67,6 @@ export const Shape: React.FC<ShapeProps> = ({
             radius={width / 2}
             fill="#fff"
             stroke="#000"
-          />
-        );
-      case 'line':
-        return (
-          <Line
-            {...shapeProps}
-            points={[0, 0, width, 0]}
-            stroke="#000"
-            strokeWidth={2}
           />
         );
       default:
