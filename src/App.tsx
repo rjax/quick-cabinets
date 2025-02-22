@@ -1,6 +1,7 @@
 import React from 'react';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
+import { SnapControls } from './components/SnapControls';
 import { useDesignerStore } from './store';
 import { Point } from './types';
 
@@ -44,8 +45,9 @@ function App() {
           Cabinet Designer
         </h1>
         <div className="flex gap-8">
-          <div className="w-20">
+          <div className="space-y-4">
             <Toolbar onAddShape={handleAddShape} />
+            <SnapControls />
           </div>
           <div className="flex-1">
             <Canvas />
