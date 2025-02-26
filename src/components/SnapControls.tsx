@@ -3,25 +3,20 @@ import { Grid, Magnet, Box, Settings } from 'lucide-react';
 import { useDesignerStore } from '../store';
 
 export const SnapControls: React.FC = () => {
-  // Get snap configuration and update function from store
   const { snapConfig, updateSnapConfig } = useDesignerStore();
 
-  // Toggle master snapping on/off
   const toggleSnapping = () => {
     updateSnapConfig({ enabled: !snapConfig.enabled });
   };
 
-  // Toggle grid visibility
   const toggleGrid = () => {
     updateSnapConfig({ showGrid: !snapConfig.showGrid });
   };
 
-  // Change snapping mode
   const changeMode = (mode: typeof snapConfig.mode) => {
     updateSnapConfig({ mode });
   };
 
-  // Toggle between contact and gap modes for adjacency
   const toggleAdjacencyMode = () => {
     updateSnapConfig({
       adjacencyMode: snapConfig.adjacencyMode === 'contact' ? 'gap' : 'contact'
@@ -30,7 +25,6 @@ export const SnapControls: React.FC = () => {
 
   return (
     <div className="bg-white p-4 shadow-md rounded-lg space-y-4">
-      {/* Master snapping toggle */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-sm font-medium">Snapping Controls</span>
         <button
@@ -44,9 +38,7 @@ export const SnapControls: React.FC = () => {
         </button>
       </div>
 
-      {/* Snapping mode buttons */}
       <div className="space-y-2">
-        {/* Grid mode */}
         <button
           onClick={() => changeMode('grid')}
           className={`w-full flex items-center justify-between p-2 rounded ${
@@ -58,7 +50,7 @@ export const SnapControls: React.FC = () => {
             Grid
           </span>
           {snapConfig.mode === 'grid' && (
-            <button
+            <div
               onClick={(e) => {
                 e.stopPropagation();
                 toggleGrid();
@@ -69,11 +61,10 @@ export const SnapControls: React.FC = () => {
               title="Toggle Grid Visibility"
             >
               <Settings className="w-3 h-3" />
-            </button>
+            </div>
           )}
         </button>
 
-        {/* Anchor mode */}
         <button
           onClick={() => changeMode('anchor')}
           className={`w-full flex items-center p-2 rounded ${
@@ -84,7 +75,6 @@ export const SnapControls: React.FC = () => {
           Anchor Points
         </button>
 
-        {/* Adjacency mode */}
         <button
           onClick={() => changeMode('adjacency')}
           className={`w-full flex items-center justify-between p-2 rounded ${
@@ -96,7 +86,7 @@ export const SnapControls: React.FC = () => {
             Adjacency
           </span>
           {snapConfig.mode === 'adjacency' && (
-            <button
+            <div
               onClick={(e) => {
                 e.stopPropagation();
                 toggleAdjacencyMode();
@@ -104,15 +94,13 @@ export const SnapControls: React.FC = () => {
               className="text-xs px-2 py-1 rounded bg-blue-200"
             >
               {snapConfig.adjacencyMode === 'contact' ? 'Contact' : 'Gap'}
-            </button>
+            </div>
           )}
         </button>
       </div>
 
-      {/* Configuration sliders */}
       {snapConfig.enabled && (
         <div className="space-y-2 pt-4 border-t">
-          {/* Grid size control */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-600">Grid Size</label>
             <input
@@ -127,7 +115,6 @@ export const SnapControls: React.FC = () => {
             <div className="text-xs text-gray-500 text-right">{snapConfig.gridSize}px</div>
           </div>
 
-          {/* Snap threshold control */}
           <div className="space-y-1">
             <label className="text-xs font-medium text-gray-600">Snap Threshold</label>
             <input
@@ -141,7 +128,6 @@ export const SnapControls: React.FC = () => {
             <div className="text-xs text-gray-500 text-right">{snapConfig.snapThreshold}px</div>
           </div>
 
-          {/* Gap distance control (only shown in adjacency gap mode) */}
           {snapConfig.mode === 'adjacency' && snapConfig.adjacencyMode === 'gap' && (
             <div className="space-y-1">
               <label className="text-xs font-medium text-gray-600">Gap Distance</label>

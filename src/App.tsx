@@ -1,9 +1,10 @@
-import React from 'react';
 import { Canvas } from './components/Canvas';
 import { Toolbar } from './components/Toolbar';
 import { SnapControls } from './components/SnapControls';
 import { useDesignerStore } from './store';
 import { Point } from './types';
+
+const nextId = (() => {return crypto.randomUUID().toString()});
 
 function App() {
   const addShape = useDesignerStore((state) => state.addShape);
@@ -11,28 +12,32 @@ function App() {
   const handleAddShape = (type: 'rectangle' | 'line' | 'arc') => {
     if (type === 'line') {
       const newShape = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: nextId(),
         type,
         x: 100,
         y: 100,
         rotation: 0,
         draggable: true,
         points: [
-          { x: 100, y: 100 },
-          { x: 200, y: 100 }
-        ] as [Point, Point]
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ] as [Point, Point],
+        endPoints: [
+          { x: 0, y: 0 },
+          { x: 100, y: 0 }
+        ] as [Point, Point],
       };
       addShape(newShape);
     } else {
       const newShape = {
-        id: Math.random().toString(36).substr(2, 9),
+        id: nextId(),
         type,
         x: 100,
         y: 100,
-        width: type === 'line' ? 100 : 80,
-        height: type === 'line' ? 2 : 80,
         rotation: 0,
         draggable: true,
+        width: 100,
+        height: 100,
       };
       addShape(newShape);
     }

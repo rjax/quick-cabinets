@@ -1,8 +1,9 @@
 import { create } from 'zustand';
-import { ComponentShape, LineShape, Point, SnapConfig, SnapGuide } from './types';
+import { devtools } from 'zustand/middleware';
+import { ComponentShape, Point, SnapConfig, SnapGuide } from './types';
 
 // Union type for all possible shapes
-type Shape = ComponentShape | LineShape;
+type Shape = ComponentShape;
 
 // State management for the designer application
 interface DesignerState {
@@ -13,8 +14,9 @@ interface DesignerState {
 
   // Actions
   addShape: (shape: Shape) => void;
-  updateShape: (id: string, updates: Partial<Shape>) => void;
+  updateShape: (id: string, updates: Shape) => void;
   updateLinePoint: (id: string, pointIndex: number, point: Point) => void;
+  updateLinePoint2: (id: string, pointIndex: number, point: Point) => void;
   setSelectedId: (id: string | null) => void;
   updateSnapConfig: (updates: Partial<SnapConfig>) => void;
   setSnapGuides: (guides: SnapGuide[]) => void;
@@ -22,7 +24,7 @@ interface DesignerState {
 }
 
 // Create the store with Zustand
-export const useDesignerStore = create<DesignerState>((set) => ({
+export const useDesignerStore = create<DesignerState>()(devtools((set) => ({
   // Initial state
   shapes: [],
   selectedId: null,
@@ -39,7 +41,7 @@ export const useDesignerStore = create<DesignerState>((set) => ({
   snapGuides: [],
 
   // Actions
-  addShape: (shape) => 
+  addShape: (shape) =>
     set((state) => ({ shapes: [...state.shapes, shape] })),
 
   updateShape: (id, updates) =>
@@ -54,9 +56,46 @@ export const useDesignerStore = create<DesignerState>((set) => ({
     set((state) => ({
       shapes: state.shapes.map((shape) => {
         if (shape.id === id && shape.type === 'line') {
-          const newPoints = [...(shape as LineShape).points];
-          newPoints[pointIndex] = point;
-          return { ...shape, points: newPoints };
+          const newShape = { ...shape };
+          newShape.endPoints[pointIndex] = point;
+          return newShape;
+        }
+        return shape;
+      }),
+    })),
+
+  updateLinePoint2: (id, pointIndex, point) =>
+    set((state) => ({
+      shapes: state.shapes.map((shape) => {
+        if (shape.id === id && shape.type === 'line') {
+          const newShape = { ...shape };
+          
+          console.log({posx:newShape.x, posy:newShape.y});
+          console.log(newShape.endPoints);
+
+          newShape.endPoints[pointIndex] = point;
+
+          newShape.x = Math.min(newShape.endPoints[0].x, newShape.endPoints[1].x);
+          newShape.y = Math.min(newShape.endPoints[0].y, newShape.endPoints[1].y);
+
+          console.log({posx:newShape.x, posy:newShape.y});
+          console.log(newShape.endPoints);
+
+          const dx = newShape.endPoints[1].x - newShape.endPoints[0].x;
+          const dy = newShape.endPoints[1].y - newShape.endPoints[0].y;
+
+          newShape.points = [
+            {
+              x: dx >= 0 ? 0 : Math.abs(dx),
+              y: dy >= 0 ? 0 : Math.abs(dy)
+            },
+            {
+              x: dx >= 0 ? Math.abs(dx) : 0,
+              y: dy >= 0 ? Math.abs(dy) : 0
+            }
+          ];
+
+          return newShape;
         }
         return shape;
       }),
@@ -71,4 +110,4 @@ export const useDesignerStore = create<DesignerState>((set) => ({
 
   setSnapGuides: (guides) => set({ snapGuides: guides }),
   clearSnapGuides: () => set({ snapGuides: [] }),
-}));
+})));

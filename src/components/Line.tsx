@@ -1,32 +1,61 @@
 import React from 'react';
 import { Line as KonvaLine, Circle, Transformer } from 'react-konva';
 import { LineProps } from '../types';
+import Konva from 'konva';
 
 export const Line: React.FC<LineProps> = ({
   id,
+  x,
+  y,
   points,
+  endPoints,
   rotation,
   isSelected,
   onSelect,
   onDragEnd,
+  onLineDragEnd,
   onPointDragEnd,
 }) => {
-  const lineRef = React.useRef(null);
-  const transformerRef = React.useRef(null);
+  const lineRef = React.useRef<Konva.Line>(null);
+  const transformerRef = React.useRef<Konva.Transformer>(null);
 
   React.useEffect(() => {
     if (isSelected && transformerRef.current && lineRef.current) {
       transformerRef.current.nodes([lineRef.current]);
-      transformerRef.current.getLayer().batchDraw();
+      transformerRef.current.getLayer()?.batchDraw();
     }
   }, [isSelected]);
 
   const [p1, p2] = points;
+  console.log({points});
+
+  //   const updateLine = () => {
+  //     const origin = {
+  //         x: Math.min(startCircle.x(), endCircle.x()),
+  //         y: Math.min(startCircle.y(), endCircle.y())
+  //     };
+
+  //     const dx = endCircle.x() - startCircle.x();
+  //     const dy = endCircle.y() - startCircle.y();
+
+  //     line.position(origin);
+  //     line.points([
+  //         dx >= 0 ? 0 : Math.abs(dx),
+  //         dy >= 0 ? 0 : Math.abs(dy),
+  //         dx >= 0 ? Math.abs(dx) : 0,
+  //         dy >= 0 ? Math.abs(dy) : 0
+  //     ]);
+
+  //     layer.draw();
+  // };
+
 
   return (
     <>
       <KonvaLine
         ref={lineRef}
+        x={x}
+        y={y}
         points={[p1.x, p1.y, p2.x, p2.y]}
         stroke="#000"
         strokeWidth={2}
@@ -35,30 +64,38 @@ export const Line: React.FC<LineProps> = ({
         rotation={rotation}
         onClick={() => onSelect(id)}
         onDragMove={(e) => {
+
+          const linePos = e.target.position();
+          const points = e.target.attrs.points;
+
+          const endPoints = [
+            {
+              x: points[0] + linePos.x,
+              y: points[1] + linePos.y
+            },
+            {
+              x: points[2] + linePos.x,
+              y: points[3] + linePos.y
+            }];
+
+          onLineDragEnd(id, 0, endPoints[0]);
+          onLineDragEnd(id, 1, endPoints[1]);
+          onDragEnd(id, e.target.x(), e.target.y());
+          return;
+
+        }}
+        onDragEnd={(e) => {
           const node = e.target;
-          const dx = node.x();
-          const dy = node.y();
-          
-          // Reset position to avoid accumulation
-          node.position({ x: 0, y: 0 });
-          
-          // Update both points
-          const newPoints = [
-            { x: p1.x + dx, y: p1.y + dy },
-            { x: p2.x + dx, y: p2.y + dy }
-          ];
-          
-          onPointDragEnd(id, 0, newPoints[0]);
-          onPointDragEnd(id, 1, newPoints[1]);
+          onDragEnd(id, node.x(), node.y());
         }}
       />
-      
+
       {isSelected && (
         <>
           {/* Endpoint anchors */}
           <Circle
-            x={p1.x}
-            y={p1.y}
+            x={endPoints[0].x}
+            y={endPoints[0].y}
             radius={6}
             fill="#fff"
             stroke="#000"
@@ -78,8 +115,8 @@ export const Line: React.FC<LineProps> = ({
             }}
           />
           <Circle
-            x={p2.x}
-            y={p2.y}
+            x={endPoints[1].x}
+            y={endPoints[1].y}
             radius={6}
             fill="#fff"
             stroke="#000"
@@ -98,16 +135,16 @@ export const Line: React.FC<LineProps> = ({
               if (stage) stage.container().style.cursor = 'default';
             }}
           />
-          <Transformer
+          {/* <Transformer
             ref={transformerRef}
             rotationSnaps={[0, 45, 90, 135, 180, 225, 270, 315]}
-            boundBoxFunc={(oldBox, newBox) => {
+            boundBoxFunc={(oldBox) => {
               // Preserve line length during rotation
               return oldBox;
             }}
             enabledAnchors={[]} // Hide resize anchors
             padding={10}
-          />
+          /> */}
         </>
       )}
     </>

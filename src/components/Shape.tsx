@@ -1,72 +1,97 @@
 import React from 'react';
+import Konva from 'konva';
 import { Rect, Circle, Transformer } from 'react-konva';
-import { ShapeProps } from '../types';
+import { RectangleShapeProps, ArcShapeProps, CircleShapeProps, LineShapeProps, Point, ComponentShapeProps } from '../types';
 import { Line } from './Line';
 
-export const Shape: React.FC<ShapeProps & { onPointDragEnd?: any }> = ({
-  id,
-  type,
-  x,
-  y,
-  width,
-  height,
-  rotation,
-  isSelected,
-  onSelect,
-  onDragEnd,
-  onPointDragEnd,
-  ...props
-}) => {
-  const shapeRef = React.useRef(null);
-  const transformerRef = React.useRef(null);
+export const Shape: React.FC<ComponentShapeProps> = (props) => {
+  const {
+    id,
+    type,
+    x,
+    y,
+    rotation,
+    isSelected,
+    onSelect,
+    onDragEnd,
+  } = props;
+
+  const rectRef = React.useRef<Konva.Rect>(null);
+  const circleRef = React.useRef<Konva.Circle>(null);
+  const transformerRef = React.useRef<Konva.Transformer>(null);
 
   React.useEffect(() => {
-    if (isSelected && transformerRef.current && shapeRef.current) {
-      transformerRef.current.nodes([shapeRef.current]);
-      transformerRef.current.getLayer().batchDraw();
+    if (isSelected && transformerRef.current) {
+      if (type === 'rectangle' && rectRef.current) {
+        transformerRef.current.nodes([rectRef.current]);
+      } else if ((type === 'arc' || type === 'circle') && circleRef.current) {
+        transformerRef.current.nodes([circleRef.current]);
+      }
+      transformerRef.current.getLayer()?.batchDraw();
     }
-  }, [isSelected]);
+  }, [isSelected, type]);
 
   const shapeProps = {
     x,
     y,
-    width,
-    height,
     rotation,
     draggable: true,
     onClick: () => onSelect(id),
     onDragEnd: (e: any) => onDragEnd(id, e.target.x(), e.target.y()),
-    ref: shapeRef,
   };
-
-  if (type === 'line' && 'points' in props) {
-    return (
-      <Line
-        {...props}
-        id={id}
-        type={type}
-        x={x}
-        y={y}
-        rotation={rotation}
-        isSelected={isSelected}
-        onSelect={onSelect}
-        onDragEnd={onDragEnd}
-        onPointDragEnd={onPointDragEnd}
-      />
-    );
-  }
 
   const renderShape = () => {
     switch (type) {
       case 'rectangle':
-        return <Rect {...shapeProps} fill="#fff" stroke="#000" />;
+        const { width, height } = props as RectangleShapeProps;
+        return (
+          <Rect
+            {...shapeProps}
+            width={width}
+            height={height}
+            ref={rectRef}
+            fill="#fff"
+            stroke="#000"
+            strokeWidth={1}
+            strokeScaleEnabled={false}
+          />
+        );
       case 'arc':
+        const arcProps = props as ArcShapeProps;
         return (
           <Circle
             {...shapeProps}
-            radius={width / 2}
+            radius={arcProps.width / 2}
             fill="#fff"
+            strokeWidth={1}
             stroke="#000"
+          />
+        );
+      case 'circle':
+        const circleProps = props as CircleShapeProps;
+        return (
+          <Circle
+            {...shapeProps}
+            ref={circleRef}
+            radius={circleProps.width / 2}
+            fill="#fff"
+            strokeWidth={1}
+            stroke="#000"
+          />
+        );
+      case 'line':
+        const lineProps = props as LineShapeProps;
+        return (
+          <Line
+            {...lineProps}
+            points={lineProps.points}
+            id={id}
+            rotation={rotation}
+            isSelected={isSelected}
+            onSelect={onSelect}
+            onDragEnd={onDragEnd}
+            onLineDragEnd={lineProps.onLineDragEnd}
+            onPointDragEnd={lineProps.onPointDragEnd}
           />
         );
       default:

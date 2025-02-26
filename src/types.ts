@@ -1,3 +1,4 @@
+
 // Core geometry types and interfaces
 export interface Point {
   x: number;
@@ -17,22 +18,46 @@ export interface SnapConfig {
 }
 
 // Base shape properties
-export interface ComponentShape {
+export interface BaseShape {
   id: string;
-  type: 'rectangle' | 'line' | 'arc';
+  type: 'rectangle' | 'line' | 'arc' | 'circle';
   x: number;
   y: number;
-  width: number;
-  height: number;
   rotation: number;
   draggable: boolean;
 }
 
-// Special case for line shapes which use points instead of width/height
-export interface LineShape extends Omit<ComponentShape, 'width' | 'height'> {
-  type: 'line';
-  points: [Point, Point];  // Start and end points of the line
+// Rectangle shape properties
+export interface RectangleShape extends BaseShape {
+  type: 'rectangle';
+  width: number;
+  height: number;
 }
+
+// Arc shape properties
+export interface ArcShape extends BaseShape {
+  type: 'arc';
+  width: number;
+  height: number;
+}
+
+// Circle shape properties
+export interface CircleShape extends BaseShape {
+  type: 'circle';
+  width: number;
+  height: number;
+}
+
+// Line shape properties
+export interface LineShape extends BaseShape {
+  type: 'line';
+  points: [Point, Point];  // Relative start and end points of the line
+  endPoints: [Point, Point]; // Absolute start and end points of the line
+
+}
+
+// Union type for all possible shapes
+export type ComponentShape = RectangleShape | ArcShape | CircleShape | LineShape;
 
 // Props for the toolbar component
 export interface ToolbarProps {
@@ -40,15 +65,22 @@ export interface ToolbarProps {
 }
 
 // Props for shape components
-export interface ShapeProps extends ComponentShape {
+export interface ShapeProps extends BaseShape {
   isSelected: boolean;
   onSelect: (id: string) => void;
   onDragEnd: (id: string, x: number, y: number) => void;
+  onDragStart?: () => void;
 }
 
 // Props specific to line shapes
-export interface LineProps extends Omit<ShapeProps, 'width' | 'height'> {
+export interface LineProps extends BaseShape{
+  id: string;
   points: [Point, Point];
+  endPoints: [Point, Point];
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onDragEnd: (id: string, x: number, y: number) => void;
+  onLineDragEnd: (id: string, pointIndex: number, point: Point) => void;
   onPointDragEnd: (id: string, pointIndex: number, point: Point) => void;
 }
 
@@ -70,4 +102,49 @@ export interface SnapIndicator {
   x: number;
   y: number;
   type: 'grid' | 'anchor' | 'adjacency';
+}
+
+export interface RectangleShapeProps extends ShapeProps {
+  type: 'rectangle';
+  width: number;
+  height: number;
+}
+
+export interface ArcShapeProps extends ShapeProps {
+  type: 'arc';
+  width: number;
+  height: number;
+}
+
+export interface CircleShapeProps extends ShapeProps {
+  type: 'circle';
+  width: number;
+  height: number;
+}
+
+export interface LineShapeProps extends ShapeProps {
+  type: 'line';
+  points: [Point, Point];
+  endPoints: [Point, Point];
+  onLineDragEnd: (id: string, pointIndex: number, point: Point) => void;
+  onPointDragEnd: (id: string, pointIndex: number, point: Point) => void;
+}
+
+export type ComponentShapeProps = RectangleShapeProps | ArcShapeProps | CircleShapeProps | LineShapeProps;
+
+// Type guards
+export function isRectangleShapeProps(props: ShapeProps): props is RectangleShapeProps {
+  return props.type === 'rectangle';
+}
+
+export function isArcShapeProps(props: ShapeProps): props is ArcShapeProps {
+  return props.type === 'arc';
+}
+
+export function isCircleShapeProps(props: ShapeProps): props is CircleShapeProps {
+  return props.type === 'circle';
+}
+
+export function isLineShapeProps(props: ShapeProps): props is LineShapeProps {
+  return props.type === 'line';
 }

@@ -7,16 +7,17 @@ import { applySnapping } from '../utils/snapping';
 
 export const Canvas: React.FC = () => {
   // Get state and actions from store
-  const { 
-    shapes, 
-    selectedId, 
-    snapConfig, 
-    snapGuides, 
-    setSelectedId, 
-    updateShape, 
-    updateLinePoint, 
-    setSnapGuides, 
-    clearSnapGuides 
+  const {
+    shapes,
+    selectedId,
+    snapConfig,
+    snapGuides,
+    setSelectedId,
+    updateShape,
+    updateLinePoint,
+    updateLinePoint2,
+    setSnapGuides,
+    clearSnapGuides
   } = useDesignerStore();
 
   // Handle shape selection
@@ -41,8 +42,12 @@ export const Canvas: React.FC = () => {
   };
 
   // Handle line endpoint dragging
-  const handlePointDragEnd = (id: string, pointIndex: number, point: Point) => {
+  const handleLineDragEnd = (id: string, pointIndex: number, point: Point) => {
     updateLinePoint(id, pointIndex, point);
+  };
+
+  const handlePointDragEnd = (id: string, pointIndex: number, point: Point) => {
+    updateLinePoint2(id, pointIndex, point);
   };
 
   // Clear guides when starting to drag
@@ -97,17 +102,19 @@ export const Canvas: React.FC = () => {
         ))}
 
         {/* Render all shapes */}
+
         {shapes.map((shape) => (
-          <Shape
-            key={shape.id}
-            {...shape}
-            isSelected={shape.id === selectedId}
-            onSelect={handleSelect}
-            onDragEnd={handleDragEnd}
-            onDragStart={handleDragStart}
-            onPointDragEnd={handlePointDragEnd}
-          />
-        ))}
+            <Shape
+              key={shape.id}
+              {...shape}
+              isSelected={shape.id === selectedId}
+              onSelect={handleSelect}
+              onDragEnd={handleDragEnd}
+              onDragStart={handleDragStart}
+              onLineDragEnd={handleLineDragEnd}
+              onPointDragEnd={handlePointDragEnd}
+            />
+          ))}
       </Layer>
     </Stage>
   );
